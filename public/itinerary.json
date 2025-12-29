@@ -1,0 +1,170 @@
+[
+  {
+    "day": 1,
+    "date": "2025-01-25",
+    "title": "Departure & Yuzawa Arrival",
+    "activities": [
+      {
+        "time": "08:25",
+        "title": "Departure Flight",
+        "description": "Taoyuan Airport Terminal 1 (Departure).",
+        "location": "Taoyuan Airport T1",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Taoyuan+Airport+Terminal+1"
+      },
+      {
+        "time": "12:35",
+        "title": "Arrival in Tokyo",
+        "description": "Landing at Narita Airport Terminal 2. Allow ~1.5h for immigration.",
+        "location": "Narita Airport T2",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Narita+Airport+Terminal+2"
+      },
+      {
+        "time": "14:30",
+        "title": "Skyliner to Ueno",
+        "description": "Take the Keisei Skyliner to Ueno Station (~50 mins).",
+        "location": "Keisei Ueno Station",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Keisei+Ueno+Station"
+      },
+      {
+        "time": "15:46",
+        "title": "Shinkansen to Yuzawa",
+        "description": "Joetsu Shinkansen to Echigo Yuzawa (Option 1: 15:46, Option 2: 16:46). Ride time ~70 mins.",
+        "location": "Echigo Yuzawa Station",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Echigo+Yuzawa+Station"
+      },
+      {
+        "time": "18:00",
+        "title": "Check-in & Dinner",
+        "description": "Arrive in Yuzawa. Check into accommodation or find dinner nearby.",
+        "location": "Yuzawa",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Echigo+Yuzawa"
+      }
+    ]
+  },
+  {
+    "day": 2,
+    "date": "2025-01-26",
+    "title": "Iwappara Skiing",
+    "activities": [
+      {
+        "time": "09:00",
+        "title": "Iwappara Ski Resort",
+        "description": "Full day skiing at Iwappara.",
+        "location": "Iwappara Ski Resort",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Iwappara+Ski+Resort"
+      },
+      {
+        "time": "18:00",
+        "title": "Dinner: Yakiniku Sakaeya",
+        "description": "East Exit Yakiniku.",
+        "location": "Yakiniku Sakaeya",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Yakiniku+Sakaeya+Echigo+Yuzawa"
+      }
+    ]
+  },
+  {
+    "day": 3,
+    "date": "2025-01-27",
+    "title": "Nakazato Skiing",
+    "activities": [
+      {
+        "time": "09:00",
+        "title": "Nakazato Snow Resort",
+        "description": "Skiing at Yuzawa Nakazato.",
+        "location": "Yuzawa Nakazato Snow Resort",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Yuzawa+Nakazato+Snow+Resort"
+      },
+      {
+        "time": "18:00",
+        "title": "Dinner",
+        "description": "Free time / Random choice for dinner.",
+        "location": "Yuzawa Area",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Echigo+Yuzawa+Station"
+      }
+    ]
+  },
+  {
+    "day": 4,
+    "date": "2025-01-28",
+    "title": "Last Ski & Return to Tokyo",
+    "activities": [
+      {
+        "time": "09:00",
+        "title": "Half-day Skiing",
+        "description": "Walk to Nakazato for half-day skiing. If gear is at rental shop, take shuttle there first.",
+        "location": "Yuzawa Nakazato Snow Resort",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Yuzawa+Nakazato+Snow+Resort"
+      },
+      {
+        "time": "13:00",
+        "title": "Return Gear & Luggage",
+        "description": "Return to accommodation to change and pick up luggage. Rental shop will collect gear.",
+        "location": "Yuzawa",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Echigo+Yuzawa"
+      },
+      {
+        "time": "14:11",
+        "title": "Shinkansen to Ueno",
+        "description": "Depart for Tokyo (Option 1: 14:11, Option 2: 15:12).",
+        "location": "Echigo Yuzawa Station",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Echigo+Yuzawa+Station"
+      },
+      {
+        "time": "16:00",
+        "title": "Transfer to Uguisudani",
+        "description": "Transfer to Yamanote or Keihin-Tohoku Line to Uguisudani Station.",
+        "location": "Uguisudani Station",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Uguisudani+Station"
+      },
+      {
+        "time": "19:00",
+        "title": "Dinner in Ginza",
+        "description": "Dinner and drinks in Ginza area.",
+        "location": "Ginza",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Ginza"
+      }
+    ]
+  },
+  {
+    "day": 5,
+    "date": "2025-01-29",
+    "title": "Tokyo Exploration",
+    "activities": [
+      {
+        "time": "09:00",
+        "title": "Myogi Shrine",
+        "description": "Visit for the Cat Omamori.",
+        "location": "Myogi Shrine",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Myogi+Shrine+Tokyo"
+      },
+      {
+        "time": "12:00",
+        "title": "Lunch: Hikiniku to Come",
+        "description": "Burgers and Rice. Strict entry at 12:00.",
+        "location": "Hikiniku to Come Shibuya",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Hikiniku+to+Come+Shibuya"
+      },
+      {
+        "time": "14:00",
+        "title": "Shibuya Shopping",
+        "description": "Shopping around Shibuya. Visit Graniph Tokyo.",
+        "location": "Graniph Tokyo Shibuya",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Graniph+Tokyo+Shibuya"
+      },
+      {
+        "time": "17:00",
+        "title": "Tamagawa Sengen Shrine",
+        "description": "Godzilla Omamori and views.",
+        "location": "Tamagawa Sengen Shrine",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Tamagawa+Sengen+Shrine"
+      },
+      {
+        "time": "20:30",
+        "title": "Dinner: Bouya Yakiniku",
+        "description": "Ueno Itto-Ushiyakiniku Bouya.",
+        "location": "Bouya Yakiniku Ueno",
+        "mapLink": "https://www.google.com/maps/search/?api=1&query=Bouya+Yakiniku+Ueno"
+      }
+    ]
+  }
+]
