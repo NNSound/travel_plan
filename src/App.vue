@@ -242,6 +242,12 @@ const handleFileUpload = (event) => {
 
 <template>
   <div class="layout">
+    <div 
+      v-if="isSidebarOpen" 
+      class="mobile-backdrop" 
+      @click="toggleSidebar"
+    ></div>
+
     <button 
       class="sidebar-toggle" 
       @click="toggleSidebar"
@@ -668,29 +674,79 @@ const handleFileUpload = (event) => {
 
 @media (max-width: 768px) {
   .layout {
-    flex-direction: column;
+    flex-direction: row;
   }
   
   .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 280px;
+    z-index: 1000;
+    background: white;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+    transform: translateX(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    border: none;
+  }
+
+  .sidebar-content {
+    padding: 5rem 1.5rem 2rem;
     width: 100%;
-    padding: 1rem;
-    overflow-x: auto;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
   }
 
   .trip-list {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
   }
 
   .trip-item {
-    margin-bottom: 0;
-    white-space: nowrap;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    white-space: normal;
   }
 
   .main-content {
+    position: relative;
+    width: 100%;
     padding: 1rem;
+    padding-top: 5rem;
+    flex: none; /* Occupy full screen independently */
+  }
+
+  .top-actions {
+    position: static;
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-end;
+    margin-bottom: 1.5rem;
+    padding: 0;
+    gap: 0.5rem;
+  }
+
+  .mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.4);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+    transition: opacity 0.3s ease;
+  }
+
+  .welcome-box {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+    width: auto;
   }
 }
 </style>
