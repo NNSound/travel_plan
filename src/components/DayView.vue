@@ -43,24 +43,24 @@ import { ref } from 'vue'
 
 <template>
   <div class="day-view">
-    <header class="day-header">
+    <header class="day-header" :data-agent="'day-header-' + day.day">
       <div class="day-badge">Day {{ day.day }}</div>
       
       <div v-if="isDayHeaderEditing" class="edit-fields">
         <div class="input-group">
           <label>Date</label>
-          <input type="date" v-model="day.date" class="edit-input">
+          <input type="date" v-model="day.date" class="edit-input" data-agent="day-date-input">
         </div>
         <div class="input-group">
           <label>Day Title</label>
-          <input type="text" v-model="day.title" class="edit-input title-input">
+          <input type="text" v-model="day.title" class="edit-input title-input" data-agent="day-title-input">
         </div>
         <div class="header-actions">
-          <button class="save-btn" @click="isDayHeaderEditing = false">Done</button>
+          <button class="save-btn" @click="isDayHeaderEditing = false" data-agent="save-day-header">Done</button>
         </div>
       </div>
       <template v-else>
-        <div class="header-content" @click="isDayHeaderEditing = true" title="Click to edit date/title">
+        <div class="header-content" @click="isDayHeaderEditing = true" title="Click to edit date/title" data-agent="edit-day-header">
           <h2 class="date">{{ formattedDateWithDay }}</h2>
           <h1 class="day-title">{{ day.title }}</h1>
           <span class="edit-hint">✏️</span>
@@ -87,7 +87,7 @@ import { ref } from 'vue'
         </template>
       </draggable>
 
-      <button class="add-activity-btn" @click="addActivity">
+      <button class="add-activity-btn" @click="addActivity" data-agent="add-activity">
         ➕ Add New Activity
       </button>
     </div>

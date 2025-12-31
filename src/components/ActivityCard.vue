@@ -41,49 +41,49 @@ defineEmits(['remove', 'edit', 'save', 'toggle-visited'])
 </script>
 
 <template>
-  <div class="activity-card" :class="{ 'is-editing': isEditing, 'no-time': noTime, 'visited': activity.visited }">
+  <div class="activity-card" :class="{ 'is-editing': isEditing, 'no-time': noTime, 'visited': activity.visited }" data-agent="activity-card">
     <div v-if="isEditing" class="drag-handle" title="Drag to reorder">
       ⋮⋮
     </div>
 
-    <button v-if="isEditing" class="remove-activity-btn" @click="$emit('remove')" title="Remove Activity">
+    <button v-if="isEditing" class="remove-activity-btn" @click="$emit('remove')" title="Remove Activity" data-agent="remove-activity-btn">
       ✕
     </button>
 
     <div v-if="!noTime" class="time-container">
       <div v-if="!isEditing" class="time-badge">{{ activity.time }}</div>
-      <input v-else type="text" v-model="activity.time" class="edit-input time-input" placeholder="HH:mm">
+      <input v-else type="text" v-model="activity.time" class="edit-input time-input" placeholder="HH:mm" data-agent="activity-time-input">
     </div>
     
     <div class="card-content">
       <div v-if="isEditing" class="edit-form">
         <div class="input-row">
-          <input type="text" v-model="activity.title" class="edit-input title-input" placeholder="Activity Title">
+          <input type="text" v-model="activity.title" class="edit-input title-input" placeholder="Activity Title" data-agent="activity-title-input">
         </div>
 
         
         <div class="input-row">
           <span class="edit-label">Tags (comma separated)</span>
-          <input type="text" v-model="localTags" class="edit-input tags-input" placeholder="e.g. 交通, 美食">
+          <input type="text" v-model="localTags" class="edit-input tags-input" placeholder="e.g. 交通, 美食" data-agent="activity-tags-input">
         </div>
 
         <div class="input-row">
           <span class="edit-label">Location Name</span>
-          <input type="text" v-model="activity.location" class="edit-input" placeholder="Location">
+          <input type="text" v-model="activity.location" class="edit-input" placeholder="Location" data-agent="activity-location-input">
         </div>
 
         <div class="input-row">
           <span class="edit-label">Map URL</span>
-          <input type="text" v-model="activity.mapLink" class="edit-input" placeholder="https://google.com/maps/...">
+          <input type="text" v-model="activity.mapLink" class="edit-input" placeholder="https://google.com/maps/..." data-agent="activity-map-link-input">
         </div>
 
         <div class="input-row">
           <span class="edit-label">Description</span>
-          <textarea v-model="activity.description" class="edit-input desc-input" placeholder="Details..."></textarea>
+          <textarea v-model="activity.description" class="edit-input desc-input" placeholder="Details..." data-agent="activity-description-input"></textarea>
         </div>
 
         <div class="edit-actions-bottom">
-          <button class="save-card-btn" @click="$emit('save')">
+          <button class="save-card-btn" @click="$emit('save')" data-agent="save-activity-btn">
             Done
           </button>
         </div>
@@ -98,11 +98,12 @@ defineEmits(['remove', 'edit', 'save', 'toggle-visited'])
               :class="{ 'is-visited': activity.visited }" 
               @click.stop="$emit('toggle-visited')" 
               title="Mark as visited"
+              data-agent="visited-toggle-btn"
             >
               {{ activity.visited ? '✅' : '✔️' }}
             </button>
             <h3 class="activity-title">{{ activity.title }}</h3>
-            <button class="inline-edit-btn" @click="$emit('edit')" title="Edit Item">
+            <button class="inline-edit-btn" @click="$emit('edit')" title="Edit Item" data-agent="edit-activity-btn">
               ✏️
             </button>
           </div>

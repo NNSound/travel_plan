@@ -523,6 +523,7 @@ The UI provides special styling for the following tags:
               class="filter-chip"
               :class="{ active: pocketFilter === tag }"
               @click="pocketFilter = tag"
+              :data-agent="'pocket-filter-' + tag"
             >
               {{ tag }}
             </button>
@@ -553,7 +554,7 @@ The UI provides special styling for the following tags:
         </div>
 
         <footer class="modal-footer">
-          <button class="add-pocket-btn primary" @click="addToPocket">
+          <button class="add-pocket-btn primary" @click="addToPocket" data-agent="add-pocket-item">
             ➕ Add New Destination
           </button>
         </footer>
@@ -564,6 +565,7 @@ The UI provides special styling for the following tags:
       class="sidebar-toggle" 
       @click="toggleSidebar"
       :aria-label="isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'"
+      data-agent="sidebar-toggle"
     >
       <span v-if="isSidebarOpen">←</span>
       <span v-else>☰</span>
@@ -579,6 +581,7 @@ The UI provides special styling for the following tags:
             class="trip-item"
             :class="{ active: selectedItinerary?.name === trip.name }"
             @click="selectedItinerary = trip"
+            :data-agent="'trip-item-' + trip.name"
           >
             {{ trip.name.replace(/\.json$/i, '') }}
           </li>
@@ -596,12 +599,12 @@ The UI provides special styling for the following tags:
             style="display: none" 
             @change="handleFileUpload"
           >
-          <button class="upload-btn" @click="triggerFileUpload">
+          <button class="upload-btn" @click="triggerFileUpload" data-agent="upload-json">
             📂 Upload JSON
           </button>
         </div>
         <div class="sidebar-footer">
-          <button class="doc-link-btn" @click="isDocModalOpen = true">
+          <button class="doc-link-btn" @click="isDocModalOpen = true" data-agent="json-guide-toggle">
             📖 JSON Guide
           </button>
         </div>
@@ -616,13 +619,13 @@ The UI provides special styling for the following tags:
 
       <div v-else-if="currentDay" class="content-wrapper">
         <div class="top-actions">
-          <button class="action-btn download" title="Download JSON" @click="downloadTrip">
+          <button class="action-btn download" title="Download JSON" @click="downloadTrip" data-agent="export-trip">
             💾 Export
           </button>
-          <button class="action-btn delete" title="Delete Trip" @click="deleteTrip(selectedItinerary)">
+          <button class="action-btn delete" title="Delete Trip" @click="deleteTrip(selectedItinerary)" data-agent="delete-trip">
             🗑️ Delete
           </button>
-          <button class="action-btn pocket" title="Pocket List" @click="isPocketModalOpen = true">
+          <button class="action-btn pocket" title="Pocket List" @click="isPocketModalOpen = true" data-agent="pocket-list-toggle">
             👜 Pocket List
           </button>
         </div>
@@ -634,6 +637,7 @@ The UI provides special styling for the following tags:
             @click="prevDay" 
             :disabled="currentDayIndex === 0"
             :class="{ hidden: currentDayIndex === 0 }"
+            data-agent="prev-day"
           >
             ← Prev Day
           </button>
@@ -653,6 +657,7 @@ The UI provides special styling for the following tags:
             @click="nextDay" 
             :disabled="currentDayIndex === itinerary.length - 1"
             :class="{ hidden: currentDayIndex === itinerary.length - 1 }"
+            data-agent="next-day"
           >
             Next Day →
           </button>
@@ -669,6 +674,7 @@ The UI provides special styling for the following tags:
         </div>
       </div>
     </main>
+
     <div v-if="isDocModalOpen" class="modal-overlay" @click.self="isDocModalOpen = false">
       <div class="modal-content doc-modal">
         <header class="modal-header doc-modal-header">

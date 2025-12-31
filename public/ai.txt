@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Instructions: /agent-manual.md
+Specification: /agent.md
