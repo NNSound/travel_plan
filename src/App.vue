@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import DayView from './components/DayView.vue'
+import ActivityCard from './components/ActivityCard.vue'
 
 // Initial state is null since we removed defaults
 const selectedItinerary = ref(null)
@@ -8,6 +9,9 @@ const itinerary = ref([])
 const currentDayIndex = ref(0)
 const loading = ref(true)
 const isSidebarOpen = ref(true)
+const pocketList = ref([])
+const isPocketModalOpen = ref(false)
+const pocketFilter = ref('All') // 'All', 'Visited', or specific tag
 
 // Custom itineraries state
 const customItineraries = ref([]) // Array of { name: string, url: null }
@@ -17,8 +21,42 @@ const allItineraries = computed(() => {
   return customItineraries.value
 })
 
+const pocketTags = computed(() => {
+  const tags = new Set()
+  pocketList.value.forEach(item => {
+    if (item.tags) item.tags.forEach(t => tags.add(t))
+  })
+  return ['All', 'Visited', ...Array.from(tags)]
+})
+
+const filteredPocketList = computed(() => {
+  let list = [...pocketList.value]
+  
+  // Filter
+  if (pocketFilter.value !== 'All') {
+    if (pocketFilter.value === 'Visited') {
+      list = list.filter(item => item.visited)
+    } else {
+      list = list.filter(item => item.tags && item.tags.includes(pocketFilter.value))
+    }
+  }
+
+  // Sort: Visited items at the bottom
+  return list.sort((a, b) => {
+    if (a.visited === b.visited) return 0
+    return a.visited ? 1 : -1
+  })
+})
+
 const processItineraryData = async (data) => {
-  itinerary.value = data
+  if (Array.isArray(data)) {
+    itinerary.value = data
+    pocketList.value = []
+  } else {
+    itinerary.value = data.days || []
+    pocketList.value = data.pocketList || []
+  }
+  
   // Default to first day
   currentDayIndex.value = 0
 
@@ -116,6 +154,7 @@ onMounted(async () => {
   if (window.innerWidth < 768) {
     isSidebarOpen.value = false
   }
+  // Remove global pocket list sync as it's now trip-specific
 })
 
 watch(selectedItinerary, (newVal) => {
@@ -154,6 +193,84 @@ const prevDay = () => {
   }
 }
 
+watch(selectedItinerary, () => {
+  // Reset states if needed
+})
+
+watch(itinerary, () => {
+  if (selectedItinerary.value?.name) {
+    const tripData = {
+      days: itinerary.value,
+      pocketList: pocketList.value
+    }
+    customDataMap.value[selectedItinerary.value.name] = tripData
+    localStorage.setItem('customDataMap', JSON.stringify(customDataMap.value))
+  }
+}, { deep: true })
+
+watch(isPocketModalOpen, (newVal) => {
+  if (!newVal) {
+    // Reset all items to non-editing mode when modal closes
+    pocketList.value.forEach(item => {
+      item.isEditing = false
+    })
+  }
+})
+
+watch(pocketList, () => {
+  savePocketList()
+}, { deep: true })
+
+const savePocketList = () => {
+  // Update in memory first
+  const currentTripName = selectedItinerary.value?.name
+  if (currentTripName) {
+    const tripData = {
+      days: itinerary.value,
+      pocketList: pocketList.value
+    }
+    customDataMap.value[currentTripName] = tripData
+    localStorage.setItem('customDataMap', JSON.stringify(customDataMap.value))
+  } else {
+    // Fallback to a temp global storage if no trip selected
+    localStorage.setItem('pocketList_temp', JSON.stringify(pocketList.value))
+  }
+}
+
+const addToPocket = () => {
+  pocketList.value.unshift({
+    id: Date.now(), // Unique ID for stable rendering
+    title: 'New Destination',
+    description: '',
+    location: '',
+    mapLink: '',
+    tags: ['想去'],
+    isEditing: true // New items start in editing mode
+  })
+  savePocketList()
+}
+
+const removeFromPocket = (index) => {
+  if (confirm('Remove from pocket list?')) {
+    pocketList.value.splice(index, 1)
+    savePocketList()
+  }
+}
+
+const addItemToCurrentDay = (item) => {
+  if (!currentDay.value) {
+    alert('Please select a trip first!')
+    return
+  }
+  // Deep clone the item (excluding time as it doesn't have it)
+  const newItem = JSON.parse(JSON.stringify(item))
+  newItem.time = '09:00' // Default time for new items added from pocket
+  
+  currentDay.value.activities.push(newItem)
+  isPocketModalOpen.value = false
+  alert(`"${newItem.title}" added to ${currentDay.value.date}! Remember to save your trip changes.`)
+}
+
 const deleteTrip = (trip) => {
   if (!confirm(`Are you sure you want to delete "${trip.name}"?`)) return
 
@@ -180,7 +297,11 @@ const downloadTrip = () => {
   if (!itinerary.value || itinerary.value.length === 0) return
   
   try {
-    const data = JSON.stringify(itinerary.value, null, 2)
+    const tripData = {
+      days: itinerary.value,
+      pocketList: pocketList.value
+    }
+    const data = JSON.stringify(tripData, null, 2)
     const blob = new Blob([data], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -248,6 +369,62 @@ const handleFileUpload = (event) => {
       @click="toggleSidebar"
     ></div>
 
+    <!-- Pocket List Modal (Revamped) -->
+    <div v-if="isPocketModalOpen" class="modal-overlay" @click.self="isPocketModalOpen = false">
+      <div class="modal-content pocket-modal">
+        <header class="modal-header">
+          <div class="header-text">
+            <h2>👜 Pocket List</h2>
+            <p class="pocket-subtitle">Your travel inspirations bucket</p>
+          </div>
+          <button class="close-btn" @click="isPocketModalOpen = false">✕</button>
+        </header>
+
+        <div class="filter-section">
+          <div class="filter-chips">
+            <button 
+              v-for="tag in pocketTags" 
+              :key="tag"
+              class="filter-chip"
+              :class="{ active: pocketFilter === tag }"
+              @click="pocketFilter = tag"
+            >
+              {{ tag }}
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <div v-if="pocketList.length === 0" class="empty-pocket">
+            <div class="empty-icon">📍</div>
+            <h3>Your Pocket is Empty</h3>
+            <p>Save interesting spots here to plan your journey easier.</p>
+          </div>
+          
+          <div class="pocket-list">
+            <ActivityCard 
+              v-for="(item, index) in filteredPocketList" 
+              :key="item.id || index" 
+              :activity="item" 
+              :isEditing="!!item.isEditing" 
+              noTime
+              @remove="removeFromPocket(index)"
+              @add-to-trip="addItemToCurrentDay(item)"
+              @edit="item.isEditing = true"
+              @save="item.isEditing = false"
+              @toggle-visited="item.visited = !item.visited"
+            />
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="add-pocket-btn primary" @click="addToPocket">
+            ➕ Add New Destination
+          </button>
+        </footer>
+      </div>
+    </div>
+
     <button 
       class="sidebar-toggle" 
       @click="toggleSidebar"
@@ -300,10 +477,13 @@ const handleFileUpload = (event) => {
       <div v-else-if="currentDay" class="content-wrapper">
         <div class="top-actions">
           <button class="action-btn download" title="Download JSON" @click="downloadTrip">
-            � Export
+            💾 Export
           </button>
           <button class="action-btn delete" title="Delete Trip" @click="deleteTrip(selectedItinerary)">
             🗑️ Delete
+          </button>
+          <button class="action-btn pocket" title="Pocket List" @click="isPocketModalOpen = true">
+            👜 Pocket List
           </button>
         </div>
         <DayView :day="currentDay" />
@@ -549,6 +729,182 @@ const handleFileUpload = (event) => {
   border-color: #9ae6b4;
 }
 
+.action-btn.edit:hover {
+  background: #ebf8ff;
+  color: #2b6cb0;
+  border-color: #90cdf4;
+}
+
+.action-btn.save {
+  background: #4299e1;
+  color: white;
+  border: none;
+}
+
+.action-btn.save:hover {
+  background: #3182ce;
+}
+
+.action-btn.cancel:hover {
+  background: #fff5f5;
+  color: #e53e3e;
+  border-color: #feb2b2;
+}
+
+.action-btn.pocket:hover {
+  background: #fff5f5;
+  color: #c53030;
+  border-color: #feb2b2;
+}
+
+/* Modal Styles - Premium Revamp */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(45, 55, 72, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+  padding: 1.5rem;
+}
+
+.modal-content.pocket-modal {
+  background: rgba(255, 255, 255, 0.95);
+  width: 100%;
+  max-width: 650px; /* Reduced width for vertical list */
+  max-height: 90vh;
+  border-radius: 32px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 2rem 2.5rem;
+  border-bottom: 1px solid #edf2f7;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header-main h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pocket-subtitle {
+  margin: 0.25rem 0 0;
+  color: #718096;
+  font-size: 0.95rem;
+}
+
+.close-btn {
+  background: #f7fafc;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  color: #a0aec0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #edf2f7;
+  color: #e53e3e;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 1.5rem 2.5rem;
+  overflow-y: auto;
+  flex: 1;
+  background: #f8fafc;
+}
+
+.pocket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.empty-pocket {
+  text-align: center;
+  padding: 5rem 2rem;
+  color: #a0aec0;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.empty-pocket h3 {
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.modal-footer {
+  padding: 1.5rem 2.5rem;
+  border-top: 1px solid #edf2f7;
+  background: white;
+  display: flex;
+  justify-content: center;
+}
+
+.add-pocket-btn.primary {
+  width: 100%;
+  max-width: 400px;
+  padding: 1rem 2rem;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(66, 153, 225, 0.3);
+}
+
+.add-pocket-btn.primary:hover {
+  background: #3182ce;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -5px rgba(66, 153, 225, 0.4);
+}
+
+@media (max-width: 768px) {
+  .pocket-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .empty-sidebar-hint {
   font-size: 0.85rem;
   color: #718096;
@@ -670,6 +1026,41 @@ const handleFileUpload = (event) => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.filter-section {
+  padding: 0.5rem 2rem;
+  background: white;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0;
+}
+
+.filter-chip {
+  padding: 0.4rem 1rem;
+  border-radius: 100px;
+  background: #edf2f7;
+  color: #4a5568;
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-chip:hover {
+  background: #e2e8f0;
+}
+
+.filter-chip.active {
+  background: #4299e1;
+  color: white;
+  box-shadow: 0 4px 6px rgba(66, 153, 225, 0.3);
 }
 
 @media (max-width: 768px) {
