@@ -11,6 +11,8 @@ const loading = ref(true)
 const isSidebarOpen = ref(true)
 const pocketList = ref([])
 const isPocketModalOpen = ref(false)
+const isDocModalOpen = ref(false)
+const docTab = ref('preview') // 'preview' or 'raw'
 const pocketFilter = ref('All') // 'All', 'Visited', or specific tag
 
 // Custom itineraries state
@@ -359,6 +361,139 @@ const handleFileUpload = (event) => {
   reader.readAsText(file)
   event.target.value = ''
 }
+
+const copyToClipboard = async (text, message = 'Copied!') => {
+  try {
+    await navigator.clipboard.writeText(text);
+    alert(message);
+  } catch (err) {
+    console.error('Failed to copy: ', err);
+    alert('Failed to copy to clipboard');
+  }
+}
+
+const templateJson = `{
+  "name": "Taiwan Trip Example",
+  "days": [
+    {
+      "day": 1,
+      "date": "2024-12-31",
+      "title": "New Year Arrival",
+      "activities": [
+        {
+          "time": "14:00",
+          "title": "Arrive at TAIPEI 101",
+          "location": "Taipei 101",
+          "description": "Check-in and view city lights.",
+          "mapLink": "https://www.google.com/maps/search/?api=1&query=Taipei+101",
+          "tags": ["Sightseeing", "Shopping"]
+        }
+      ]
+    }
+  ],
+  "pocketList": [
+    {
+      "title": "Din Tai Fung",
+      "location": "Xinyi District",
+      "description": "Famous xiaolongbao.",
+      "mapLink": "https://www.google.com/maps/search/?api=1&query=Din+Tai+Fung+Xinyi",
+      "tags": ["Food"],
+      "visited": false
+    }
+  ]
+}`
+
+const rawAgentMd = `# Travel Plan JSON Specification
+
+This guide explains how to generate or create JSON files that are compatible with the Travel Planner application. These files can be imported via the "Import JSON" button in the sidebar.
+
+## JSON Structure Overview
+
+The root of the JSON file must contain the following fields:
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| \`name\` | String | The overall name of the trip. |
+| \`days\` | Array | A list of daily itineraries. |
+| \`pocketList\` | Array | (Optional) A list of inspirations/spots not yet assigned to a specific day. |
+
+---
+
+## Component Details
+
+### 1. Day Object
+Each item in the \`days\` array should have:
+- \`day\` (Number): The sequence number of the day.
+- \`date\` (String): The date in \`YYYY-MM-DD\` format.
+- \`title\` (String): A brief theme for the day.
+- \`activities\` (Array): A list of activity objects.
+
+### 2. Activity Object
+Used in both \`days.activities\` and \`pocketList\`.
+- \`time\` (String): 24-hour format \`HH:mm\`.
+- \`title\` (String): Name of the activity or spot.
+- \`location\` (String): Human-readable address or landmark name.
+- \`description\` (String): Details or notes.
+- \`mapLink\` (String): Google Maps search URL (see below).
+- \`tags\` (Array): Category labels (e.g., \`["Food", "Sightseeing"]\`).
+- \`visited\` (Boolean): (Optional, used in Pocket List) Set to \`true\` if already visited.
+
+---
+
+## Guidelines for Quality Content
+
+### 📍 Google Maps Links
+For better reliability and readability, **ALWAYS** use the Google Maps Search API format instead of raw coordinates:
+- **Format**: \`https://www.google.com/maps/search/?api=1&query=Landmark+Name\`
+- **Example**: \`https://www.google.com/maps/search/?api=1&query=Taipei+101+Observatory\`
+
+### 🏷️ Recommended Tags
+The UI provides special styling for the following tags:
+- \`Transport\`
+- \`Food\`
+- \`Sightseeing\`
+- \`Shopping\`
+- \`Ski\`
+- \`Accommodation\`
+- \`Free\`
+
+---
+
+## Example Template
+
+\`\`\`json
+{
+  "name": "Taiwan Trip Example",
+  "days": [
+    {
+      "day": 1,
+      "date": "2024-12-31",
+      "title": "New Year Arrival",
+      "activities": [
+        {
+          "time": "14:00",
+          "title": "Arrive at TAIPEI 101",
+          "location": "Taipei 101",
+          "description": "Check-in and view city lights.",
+          "mapLink": "https://www.google.com/maps/search/?api=1&query=Taipei+101",
+          "tags": ["Sightseeing", "Shopping"]
+        }
+      ]
+    }
+  ],
+  "pocketList": [
+    {
+      "title": "Din Tai Fung",
+      "location": "Xinyi District",
+      "description": "Famous xiaolongbao.",
+      "mapLink": "https://www.google.com/maps/search/?api=1&query=Din+Tai+Fung+Xinyi",
+      "tags": ["Food"],
+      "visited": false
+    }
+  ]
+}
+\`\`\`
+`
 </script>
 
 <template>
@@ -465,6 +600,11 @@ const handleFileUpload = (event) => {
             📂 Upload JSON
           </button>
         </div>
+        <div class="sidebar-footer">
+          <button class="doc-link-btn" @click="isDocModalOpen = true">
+            📖 JSON Guide
+          </button>
+        </div>
       </div>
     </aside>
 
@@ -529,6 +669,117 @@ const handleFileUpload = (event) => {
         </div>
       </div>
     </main>
+    <div v-if="isDocModalOpen" class="modal-overlay" @click.self="isDocModalOpen = false">
+      <div class="modal-content doc-modal">
+        <header class="modal-header doc-modal-header">
+          <div class="header-text">
+            <h2>📖 JSON Guide</h2>
+            <p class="doc-subtitle">Use these specifications to generate compatible travel plans with AI assistants.</p>
+            <div class="doc-tabs">
+              <button 
+                class="doc-tab-btn" 
+                :class="{ active: docTab === 'preview' }"
+                @click="docTab = 'preview'"
+              >Preview</button>
+              <button 
+                class="doc-tab-btn" 
+                :class="{ active: docTab === 'raw' }"
+                @click="docTab = 'raw'"
+              >Raw Markdown</button>
+            </div>
+          </div>
+          <button class="close-btn" @click="isDocModalOpen = false">✕</button>
+        </header>
+        
+        <div v-if="docTab === 'preview'" class="modal-body doc-body">
+          <div class="doc-section">
+            <h1>Travel Plan JSON Specification</h1>
+            <p>This guide explains how to generate or create JSON files that are compatible with the Travel Planner application. These files can be imported via the <strong>"Import JSON"</strong> button in the sidebar.</p>
+          </div>
+
+          <div class="doc-section">
+            <h3>JSON Structure Overview</h3>
+            <p>The root of the JSON file must contain the following fields:</p>
+            <table class="spec-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>name</code></td>
+                  <td>String</td>
+                  <td>The overall name of the trip.</td>
+                </tr>
+                <tr>
+                  <td><code>days</code></td>
+                  <td>Array</td>
+                  <td>A list of daily itineraries.</td>
+                </tr>
+                <tr>
+                  <td><code>pocketList</code></td>
+                  <td>Array</td>
+                  <td>(Optional) inspirations/spots.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h3>Component Details</h3>
+            <h4>1. Day Object</h4>
+            <ul>
+              <li><code>day</code>: Sequence number (Number)</li>
+              <li><code>date</code>: <code>YYYY-MM-DD</code> format</li>
+              <li><code>title</code>: Day theme</li>
+              <li><code>activities</code>: List of activity objects</li>
+            </ul>
+            <h4>2. Activity Object</h4>
+            <ul>
+              <li><code>time</code>: 24h format <code>HH:mm</code></li>
+              <li><code>title</code>: Name of activity</li>
+              <li><code>location</code>: Landmark name</li>
+              <li><code>description</code>: Details/Notes</li>
+              <li><code>mapLink</code>: Google Maps URL</li>
+              <li><code>tags</code>: e.g., <code>["Food", "Sightseeing"]</code></li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <h3>Guidelines for Quality Content</h3>
+            <div class="tip-box">
+              <strong>📍 Google Maps Links</strong>
+              <p>ALWAYS use the Search API format for reliability:</p>
+              <code>https://www.google.com/maps/search/?api=1&query=Landmark+Name</code>
+            </div>
+            <div class="tip-box" style="margin-top: 1rem;">
+              <strong>🏷️ Recommended Tags</strong>
+              <p>Styled tags: Transport, Food, Sightseeing, Shopping, Ski, Accommodation, Free</p>
+            </div>
+          </div>
+          
+          <div class="doc-section">
+            <h3>Full Example Template</h3>
+            <p>Copy this structure to your AI assistant:</p>
+            <div class="code-block">
+              <button class="copy-hint" @click="copyToClipboard(templateJson, 'Template copied!')">Copy Template</button>
+              <pre>{{ templateJson }}</pre>
+            </div>
+          </div>
+          <!-- CLEANED SECTION -->
+        </div>
+
+        <div v-else class="modal-body doc-body raw-body">
+          <div class="raw-container">
+            <button class="copy-raw-btn" @click="copyToClipboard(rawAgentMd, 'Markdown copied!')">Copy Raw MD</button>
+            <pre class="raw-markdown">{{ rawAgentMd }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -773,10 +1024,9 @@ const handleFileUpload = (event) => {
   padding: 1.5rem;
 }
 
-.modal-content.pocket-modal {
-  background: rgba(255, 255, 255, 0.95);
+.modal-content {
+  background: white;
   width: 100%;
-  max-width: 650px; /* Reduced width for vertical list */
   max-height: 90vh;
   border-radius: 32px;
   box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.25);
@@ -787,9 +1037,12 @@ const handleFileUpload = (event) => {
   animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes modalPop {
-  from { opacity: 0; transform: scale(0.9) translateY(20px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+.modal-content.pocket-modal {
+  max-width: 650px;
+}
+
+.modal-content.doc-modal {
+  max-width: 800px;
 }
 
 .modal-header {
@@ -798,16 +1051,17 @@ const handleFileUpload = (event) => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.header-main h2 {
+.header-text h2 {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #2d3748; /* Simplified color for reliability */
 }
 
 .pocket-subtitle {
@@ -1139,5 +1393,225 @@ const handleFileUpload = (event) => {
     margin: 1rem;
     width: auto;
   }
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.doc-link-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.doc-link-btn:hover {
+  background: white;
+  border-color: #4299e1;
+  color: #4299e1;
+  box-shadow: 0 2px 4px rgba(66, 153, 225, 0.1);
+}
+
+.doc-modal {
+  max-height: 85vh !important;
+}
+
+.doc-body {
+  padding: 2.5rem;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.doc-section {
+  margin-bottom: 2rem;
+}
+
+.doc-section h3 {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-bottom: 0.75rem;
+  border-left: 4px solid #4299e1;
+  padding-left: 0.75rem;
+}
+
+.doc-section p, .doc-section li {
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+.doc-modal-header {
+  flex-direction: row;
+  align-items: center;
+  padding: 1.5rem 2.5rem;
+}
+
+.doc-subtitle {
+  margin: 0.25rem 0 0.5rem;
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.doc-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.doc-tab-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.doc-tab-btn:hover {
+  color: #718096;
+}
+
+.doc-tab-btn.active {
+  color: #4299e1;
+  border-bottom-color: #4299e1;
+}
+
+.raw-body {
+  background: #1a202c !important;
+  color: #e2e8f0;
+  padding: 0 !important;
+}
+
+.raw-container {
+  position: relative;
+  height: 100%;
+}
+
+.copy-raw-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #a0aec0;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.copy-raw-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.raw-markdown {
+  margin: 0;
+  padding: 2.5rem;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-y: auto;
+}
+
+.doc-section h1 {
+  font-size: 1.75rem;
+  color: #2d3748;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 0.75rem;
+}
+
+.doc-section h4 {
+  font-size: 1rem;
+  color: #4a5568;
+  margin: 1rem 0 0.5rem;
+}
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+
+.spec-table th, .spec-table td {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.spec-table th {
+  color: #718096;
+  font-weight: 600;
+}
+
+.tip-box {
+  background: #ebf8ff;
+  border-left: 4px solid #4299e1;
+  padding: 1rem;
+  border-radius: 0 8px 8px 0;
+}
+
+.tip-box strong {
+  display: block;
+  color: #2b6cb0;
+  margin-bottom: 0.25rem;
+}
+
+.tip-box p, .tip-box code {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.code-block {
+  position: relative;
+  background: #1a202c;
+  color: #e2e8f0;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+  font-size: 0.85rem;
+}
+
+.copy-hint {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #a0aec0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copy-hint:hover {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.code-block pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: 'Monaco', 'Consolas', monospace;
 }
 </style>
